@@ -1,6 +1,7 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { RpcExceptionFilter } from './common/filters/rpc-exception.filter';
 import { envs } from './configs/envs';
 
 async function bootstrap() {
@@ -9,6 +10,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix('/api');
+  app.useGlobalFilters(new RpcExceptionFilter());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
