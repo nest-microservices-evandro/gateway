@@ -73,7 +73,15 @@ export class ProductsController {
   }
 
   @Delete(':id')
-  removeProduct(@Param('id', ParseIntPipe) id: number) {
-    return `Update product with id: ${id}`;
+  async removeProduct(@Param('id', ParseIntPipe) id: number) {
+    try {
+      const product = await firstValueFrom(
+        this.productsClient.send({ cmd: 'remove_product' }, { id }),
+      );
+
+      return product;
+    } catch (error) {
+      throw new RpcException(error);
+    }
   }
 }
