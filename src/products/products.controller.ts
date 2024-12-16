@@ -4,14 +4,13 @@ import {
   Delete,
   Get,
   Inject,
-  NotFoundException,
   Param,
   ParseIntPipe,
   Patch,
   Post,
   Query,
 } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { PRODUCT_SERVICE } from 'src/configs/services.constant';
@@ -46,7 +45,7 @@ export class ProductsController {
 
       return product;
     } catch (error) {
-      throw new NotFoundException(error.message);
+      throw new RpcException(error);
     }
   }
 
