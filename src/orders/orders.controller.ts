@@ -4,17 +4,19 @@ import {
   Get,
   Inject,
   Param,
-  ParseIntPipe,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
+  UsePipes,
 } from '@nestjs/common';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { catchError } from 'rxjs';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { ORDERS_SERVICE } from 'src/configs/services.constant';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
+import { PaginationOrderDto } from './dto/pagination-order.dto';
+import { OrderStatus } from './enum/status.enum';
+import { ParseOrderStatusPipe } from './pipes/parse-order-status.pipe';
 
 @Controller('orders')
 export class OrdersController {
@@ -29,12 +31,12 @@ export class OrdersController {
   }
 
   @Get()
-  findAllOrders(@Query() paginationDto: PaginationDto) {
-    return this.ordersClient.send('find_all_orders', paginationDto);
+  findAllOrders(@Query() paginationOrderDto: PaginationOrderDto) {
+    return this.ordersClient.send('find_all_orders', paginationOrderDto);
   }
 
   @Get(':id')
-  findOneOrder(@Param('id', ParseIntPipe) id: number) {
+  findOneOrder(@Param('id', ParseUUIDPipe) id: string) {
     return this.ordersClient.send('find_one_order', { id }).pipe(
       catchError((error) => {
         throw new RpcException(error);
@@ -42,17 +44,16 @@ export class OrdersController {
     );
   }
 
-  @Patch(':id')
+  @UsePipes(ParseOrderStatusPipe)
+  @Patch(':id/:status')
   changeStatusOrder(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateOrderDto: UpdateOrderDto,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('status') status: OrderStatus,
   ) {
-    return this.ordersClient
-      .send('change_status_order', { id, ...updateOrderDto })
-      .pipe(
-        catchError((error) => {
-          throw new RpcException(error);
-        }),
-      );
+    return this.ordersClient.send('change_status_order', { id, status }).pipe(
+      catchError((error) => {
+        throw new RpcException(error);
+      }),
+    );
   }
 }
